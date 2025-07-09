@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Versión {{ version }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-{{ color }} text-{{ 'light' if color == 'dark' else 'dark' }} py-5">
+    <div class="container text-center">
+        <h2>{{ version }} 🧪</h2>
+        <p class="mb-4">Bienvenido, {{ usuario }}</p>
+
+        <form method="post" class="mb-4">
+            <input name="precio" type="number" step="0.01" placeholder="Introduce precio" class="form-control mb-2" style="max-width: 300px; margin: auto;" required>
+            <button type="submit" class="btn btn-outline-light">Calcular descuento</button>
+        </form>
+
+        {% if resultado %}
+            <div class="alert alert-light w-50 mx-auto">
+                <strong>Resultado:</strong> {{ resultado }} €
+            </div>
+        {% endif %}
+
+        <a href="{{ url_for('version_prod') }}" class="btn btn-success m-2">Ir a Producción</a>
+        <a href="{{ url_for('version_sombra') }}" class="btn btn-secondary m-2">Ir a Sombra</a>
+        <a href="{{ url_for('login') }}" class="btn btn-danger m-2">Cerrar sesión</a>
+    </div>
+</body>
+</html>

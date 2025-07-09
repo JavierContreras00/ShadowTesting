@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Versión Producción</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 30px; }
+        .contador { font-size: 2em; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container bg-white p-4 rounded shadow">
+        <h2 class="mb-3">Versión: Producción</h2>
+        <p>Bienvenido, <strong>{{ usuario }}</strong></p>
+
+        <!-- ALERTA -->
+        <div id="alerta" class="alert alert-info d-none" role="alert"></div>
+
+        <!-- FORMULARIO PRINCIPAL -->
+        <form method="POST">
+            <div class="mb-3">
+                <label for="precio" class="form-label">Introduce un precio:</label>
+                <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Calcular Descuento</button>
+        </form>
+
+        {% if resultado %}
+        <div class="alert alert-success mt-3">
+            Resultado del cálculo: <strong>{{ resultado }}</strong>
+        </div>
+        {% endif %}
+
+        <hr>
+
+        <!-- SELECCIÓN MULTIPLE -->
+        <h5>Opciones adicionales</h5>
+        <div class="mb-3">
+            <label class="form-label">Selecciona una categoría:</label>
+            <select class="form-select">
+                <option value="">Elige...</option>
+                <option>Ropa</option>
+                <option>Electrónica</option>
+                <option>Alimentación</option>
+            </select>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="envioGratis">
+            <label class="form-check-label" for="envioGratis">Envío gratuito</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="metodoPago" id="pagoTarjeta">
+            <label class="form-check-label" for="pagoTarjeta">Pago con tarjeta</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="metodoPago" id="pagoPaypal">
+            <label class="form-check-label" for="pagoPaypal">Pago con PayPal</label>
+        </div>
+
+        <hr>
+
+        <!-- BOTONES ACCIÓN -->
+        <h5>Acciones rápidas</h5>
+        <button class="btn btn-outline-secondary me-2" onclick="mostrarMensaje('Guardado correctamente')">Guardar</button>
+        <button class="btn btn-outline-warning me-2" onclick="mostrarMensaje('Descarga iniciada')">Descargar</button>
+        <button class="btn btn-outline-danger me-2" onclick="mostrarMensaje('Se ha eliminado el ítem')">Eliminar</button>
+        <button class="btn btn-outline-info" onclick="incrementar()">Click para sumar</button>
+
+        <div class="contador mt-3" id="contador">Clicks: 0</div>
+
+        <hr>
+
+        <!-- TABLA EDITABLE -->
+        <h5>Productos</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" class="form-control" value="Camiseta"></td>
+                    <td><input type="number" class="form-control" value="2"></td>
+                    <td><input type="number" class="form-control" value="19.99"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="form-control" value="Auriculares"></td>
+                    <td><input type="number" class="form-control" value="1"></td>
+                    <td><input type="number" class="form-control" value="49.99"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <a href="/login" class="btn btn-outline-dark">Cerrar sesión</a>
+    </div>
+
+    <script>
+        let contador = 0;
+        function incrementar() {
+            contador++;
+            document.getElementById("contador").innerText = "Clicks: " + contador;
+        }
+
+        function mostrarMensaje(msg) {
+            const alerta = document.getElementById("alerta");
+            alerta.innerText = msg;
+            alerta.classList.remove("d-none");
+            setTimeout(() => alerta.classList.add("d-none"), 3000);
+        }
+    </script>
+</body>
+</html>

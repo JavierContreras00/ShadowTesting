@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado - Shadow Testing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light text-center py-4">
+    <div class="container">
+        <h2 class="mb-4">Resultados para {{ usuario }}</h2>
+        <p class="lead">Precio original: <strong>{{ precio }} €</strong></p>
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-5 mb-3">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">🟢 Producción (v1)</div>
+                    <div class="card-body">
+                        <p><strong>Resultado:</strong> {{ res1 }} €</p>
+                        <p><strong>Tiempo:</strong> {{ t1 }} s</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5 mb-3">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">🧪 Sombra (v2)</div>
+                    <div class="card-body">
+                        <p><strong>Resultado:</strong> {{ res2 }}</p>
+                        <p><strong>Tiempo:</strong> {{ t2 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="h5">Diferencia: <span class="text-danger">{{ diff }}</span></p>
+    </div>
+</body>
+</html>
