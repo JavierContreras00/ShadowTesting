@@ -24,79 +24,86 @@
                 <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
             </div>
             <button type="submit" class="btn btn-primary">Calcular Descuento</button>
+
+            {% if resultado %}
+            <div class="alert alert-success mt-3">
+                Resultado del cálculo: <strong>{{ resultado }}</strong>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <!-- SELECCIÓN MULTIPLE -->
+            <h5>Opciones adicionales</h5>
+            <div class="mb-3">
+                <label class="form-label">Selecciona una categoría:</label>
+                <select class="form-select" name="categoria">
+                    <option value="">Elige...</option>
+                    <option>Ropa</option>
+                    <option>Electrónica</option>
+                    <option>Alimentación</option>
+                </select>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="envioGratis" name="envio_gratis">
+                <label class="form-check-label" for="envioGratis">Envío gratuito</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="metodo_pago" id="pagoTarjeta" value="tarjeta">
+                <label class="form-check-label" for="pagoTarjeta">Pago con tarjeta</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="metodo_pago" id="pagoPaypal" value="paypal">
+                <label class="form-check-label" for="pagoPaypal">Pago con PayPal</label>
+            </div>
+
+            <hr>
+
+            <!-- BOTONES ACCIÓN -->
+            <h5>Acciones rápidas</h5>
+            <button type="button" class="btn btn-outline-secondary me-2" onclick="mostrarMensaje('Guardado correctamente')">Guardar</button>
+            <button type="button" class="btn btn-outline-warning me-2" onclick="mostrarMensaje('Descarga iniciada')">Descargar</button>
+            <button type="button" class="btn btn-outline-danger me-2" onclick="mostrarMensaje('Se ha eliminado el ítem')">Eliminar</button>
+            <button type="button" class="btn btn-outline-info" onclick="incrementar()">Click para sumar</button>
+
+            <div class="contador mt-3" id="contador">Clicks: 0</div>
+
+            <hr>
+
+            <!-- TABLA DINÁMICA DE PRODUCTOS -->
+            <h5>Productos</h5>
+            <table class="table table-bordered" id="tablaProductos">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input name="producto[]" type="text" class="form-control" value="Camiseta" required></td>
+                        <td><input name="cantidad[]" type="number" class="form-control" value="2" required></td>
+                        <td><input name="precio_producto[]" type="number" class="form-control" value="19.99" step="0.01" required></td>
+                        <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
+                    </tr>
+                    <tr>
+                        <td><input name="producto[]" type="text" class="form-control" value="Auriculares" required></td>
+                        <td><input name="cantidad[]" type="number" class="form-control" value="1" required></td>
+                        <td><input name="precio_producto[]" type="number" class="form-control" value="49.99" step="0.01" required></td>
+                        <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-success" onclick="añadirFila()">➕ Añadir producto</button>
+
+            <hr>
+
+            <button type="submit" class="btn btn-primary mt-3">Enviar formulario completo</button>
         </form>
 
-        {% if resultado %}
-        <div class="alert alert-success mt-3">
-            Resultado del cálculo: <strong>{{ resultado }}</strong>
-        </div>
-        {% endif %}
-
         <hr>
-
-        <!-- SELECCIÓN MULTIPLE -->
-        <h5>Opciones adicionales</h5>
-        <div class="mb-3">
-            <label class="form-label">Selecciona una categoría:</label>
-            <select class="form-select">
-                <option value="">Elige...</option>
-                <option>Ropa</option>
-                <option>Electrónica</option>
-                <option>Alimentación</option>
-            </select>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="envioGratis">
-            <label class="form-check-label" for="envioGratis">Envío gratuito</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="metodoPago" id="pagoTarjeta">
-            <label class="form-check-label" for="pagoTarjeta">Pago con tarjeta</label>
-        </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="radio" name="metodoPago" id="pagoPaypal">
-            <label class="form-check-label" for="pagoPaypal">Pago con PayPal</label>
-        </div>
-
-        <hr>
-
-        <!-- BOTONES ACCIÓN -->
-        <h5>Acciones rápidas</h5>
-        <button class="btn btn-outline-secondary me-2" onclick="mostrarMensaje('Guardado correctamente')">Guardar</button>
-        <button class="btn btn-outline-warning me-2" onclick="mostrarMensaje('Descarga iniciada')">Descargar</button>
-        <button class="btn btn-outline-danger me-2" onclick="mostrarMensaje('Se ha eliminado el ítem')">Eliminar</button>
-        <button class="btn btn-outline-info" onclick="incrementar()">Click para sumar</button>
-
-        <div class="contador mt-3" id="contador">Clicks: 0</div>
-
-        <hr>
-
-        <!-- TABLA EDITABLE -->
-        <h5>Productos</h5>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" class="form-control" value="Camiseta"></td>
-                    <td><input type="number" class="form-control" value="2"></td>
-                    <td><input type="number" class="form-control" value="19.99"></td>
-                </tr>
-                <tr>
-                    <td><input type="text" class="form-control" value="Auriculares"></td>
-                    <td><input type="number" class="form-control" value="1"></td>
-                    <td><input type="number" class="form-control" value="49.99"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <hr>
-
         <a href="/login" class="btn btn-outline-dark">Cerrar sesión</a>
     </div>
 
@@ -112,6 +119,22 @@
             alerta.innerText = msg;
             alerta.classList.remove("d-none");
             setTimeout(() => alerta.classList.add("d-none"), 3000);
+        }
+
+        function añadirFila() {
+            const tabla = document.getElementById("tablaProductos").getElementsByTagName("tbody")[0];
+            const nuevaFila = tabla.insertRow();
+            nuevaFila.innerHTML = `
+                <td><input name="producto[]" type="text" class="form-control" required></td>
+                <td><input name="cantidad[]" type="number" class="form-control" required></td>
+                <td><input name="precio_producto[]" type="number" class="form-control" step="0.01" required></td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
+            `;
+        }
+
+        function eliminarFila(boton) {
+            const fila = boton.closest("tr");
+            fila.remove();
         }
     </script>
 </body>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow" style="width: 350px;">
+        <h4 class="mb-3 text-center">📝 Registro de nuevo usuario</h4>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if mensaje %}
+            <div class="alert alert-success">{{ mensaje }}</div>
+        {% endif %}
+        <form method="post">
+            <input name="usuario" class="form-control mb-3" placeholder="Nuevo usuario" required>
+            <input name="clave" type="password" class="form-control mb-3" placeholder="Nueva contraseña" required>
+            <button class="btn btn-success w-100" type="submit">Registrar</button>
+        </form>
+        <a href="{{ url_for('login') }}" class="btn btn-link mt-2">Volver al login</a>
+    </div>
+</body>
+</html>
