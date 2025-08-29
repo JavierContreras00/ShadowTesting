@@ -102,6 +102,23 @@ def registro():
     return render_template("registro.html")
 
 
+# ------- UTILIDAD: leer productos desde TXT (mismo separador que el guardado) -------
+def leer_productos():
+    productos = []
+    ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
+    if os.path.exists(ruta_fichero):
+        with open(ruta_fichero, "r", encoding="utf-8") as f:
+            for linea in f:
+                partes = linea.strip().split(":")  # <- usamos ":" para ser coherentes con /incluir_productos
+                if len(partes) == 3:
+                    nombre, cantidad, precio = partes
+                    productos.append({
+                        "nombre": nombre,
+                        "cantidad": cantidad,
+                        "precio": precio
+                    })
+    return productos
+
 
 # ============ PRODUCCIÓN ============
 @app.route("/prod", methods=["GET", "POST"])
@@ -118,13 +135,47 @@ def version_prod():
         except:
             resultado = "Error al calcular el descuento."
  
+    # Cargar productos en cada petición
+    productos = leer_productos()
+
     return render_template("version.html",
                            usuario=session["usuario"],
                            version="Producción",
                            color="success",
-                           resultado=resultado)
+                           resultado=resultado,
+                           productos=productos)  # <- se inyecta a la plantilla
  
- 
+
+# (Opcional) Ruta de ejemplo que ya tenías para otra plantilla
+@app.route("/produccion", methods=["GET", "POST"])
+def produccion():
+    productos = leer_productos()
+    return render_template("produccion.html", usuario="Demo", productos=productos)
+
+
+@app.route("/guardar_productos", methods=["POST"])
+def guardar_productos():
+    if "usuario" not in session:
+        return redirect(url_for("login"))
+
+    try:
+        productos = request.form.getlist("producto[]")
+        cantidades = request.form.getlist("cantidad[]")
+        precios = request.form.getlist("precio_producto[]")
+
+        ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
+
+        # 👇 Sobrescribe el fichero con las filas actuales
+        with open(ruta_fichero, "w", encoding="utf-8") as f:
+            for p, c, pr in zip(productos, cantidades, precios):
+                f.write(f"{p}:{c}:{pr}\n")
+
+        log_accion(session["usuario"], "producción", "actualizó productos")
+        return redirect(url_for("version_prod"))
+    except Exception as e:
+        return f"❌ Error al guardar productos: {e}"
+
+
 @app.route("/incluir_productos", methods=["POST"])
 def incluir_productos():
     if "usuario" not in session:
@@ -133,7 +184,7 @@ def incluir_productos():
     try:
         productos = request.form.getlist("producto[]")
         cantidades = request.form.getlist("cantidad[]")
-        precios = request.form.getlist("precio[]")
+        precios = request.form.getlist("precio_producto[]")  # <- nombre correcto del input en la plantilla
 
         ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
 

@@ -5,29 +5,17 @@
     <title>Versión Sombra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            padding: 30px;
-            background-color: #1e1e2f;
-            color: #f8f9fa;
-        }
-        .container {
-            background-color: #2c2f4a;
-        }
-        .btn-outline-light:hover {
-            background-color: #ffffff22;
-        }
-        .contador {
-            font-size: 2em;
-        }
+        body { padding: 30px; }
+        .contador { font-size: 2em; }
     </style>
 </head>
-<body>
-    <div class="container p-4 rounded shadow">
-        <h2 class="mb-3">Versión: Sombra</h2>
+<body style="background-color: #2c3e50;"> <!-- Fondo distinto para Sombra -->
+    <div class="container bg-white p-4 rounded shadow">
+        <h2 class="mb-3 text-warning">Versión: {{ version }}</h2>
         <p>Bienvenido, <strong>{{ usuario }}</strong></p>
 
         <!-- ALERTA -->
-        <div id="alerta" class="alert alert-warning d-none" role="alert"></div>
+        <div id="alerta" class="alert alert-info d-none" role="alert"></div>
 
         <!-- FORMULARIO PRINCIPAL -->
         <form method="POST">
@@ -35,81 +23,92 @@
                 <label for="precio" class="form-label">Introduce un precio:</label>
                 <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
             </div>
-            <button type="submit" class="btn btn-light">Calcular Descuento</button>
+            <button type="submit" class="btn btn-{{ color|default('secondary') }}">Calcular Descuento</button>
+
+            {% if resultado %}
+            <div class="alert alert-success mt-3">
+                Resultado del cálculo: <strong>{{ resultado }}</strong>
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <!-- SELECCIÓN MULTIPLE -->
+            <h5>Opciones adicionales</h5>
+            <div class="mb-3">
+                <label class="form-label">Selecciona una categoría:</label>
+                <select class="form-select" name="categoria">
+                    <option value="">Elige...</option>
+                    <option>Ropa</option>
+                    <option>Electrónica</option>
+                    <option>Alimentación</option>
+                </select>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="envioGratis" name="envio_gratis">
+                <label class="form-check-label" for="envioGratis">Envío gratuito</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="metodo_pago" id="pagoTarjeta" value="tarjeta">
+                <label class="form-check-label" for="pagoTarjeta">Pago con tarjeta</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="radio" name="metodo_pago" id="pagoPaypal" value="paypal">
+                <label class="form-check-label" for="pagoPaypal">Pago con PayPal</label>
+            </div>
+
+            <hr>
+
+            <!-- BOTONES ACCIÓN -->
+            <h5>Acciones rápidas</h5>
+            <button type="button" class="btn btn-outline-secondary me-2" onclick="mostrarMensaje('Guardado correctamente')">Guardar</button>
+            <button type="button" class="btn btn-outline-warning me-2" onclick="mostrarMensaje('Descarga iniciada')">Descargar</button>
+            <button type="button" class="btn btn-outline-danger me-2" onclick="mostrarMensaje('Se ha eliminado el ítem')">Eliminar</button>
+            <button type="button" class="btn btn-outline-info" onclick="incrementar()">Click para sumar</button>
+
+            <div class="contador mt-3" id="contador">Clicks: 0</div>
+
+            <hr>
+
+            <!-- TABLA DINÁMICA DE PRODUCTOS -->
+            <h5>Productos</h5>
+            <table class="table table-bordered" id="tablaProductos">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                    <tr>
+                        <td><input name="producto[]" type="text" class="form-control" value="{{ p.nombre }}" required></td>
+                        <td><input name="cantidad[]" type="number" class="form-control" value="{{ p.cantidad }}" required></td>
+                        <td><input name="precio_producto[]" type="number" class="form-control" value="{{ p.precio }}" step="0.01" required></td>
+                        <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="d-flex gap-2">
+                <!-- Añadir (apendea al TXT) -->
+                <button type="submit"
+                        formaction="{{ url_for('incluir_productos_sombra') }}"
+                        class="btn btn-sm btn-outline-success">➕ Añadir productos (agrega al TXT)</button>
+
+                <!-- Guardar (reescribe el TXT) -->
+                <button type="submit"
+                        formaction="{{ url_for('guardar_productos_sombra') }}"
+                        class="btn btn-sm btn-primary">💾 Guardar productos (reescribe TXT)</button>
+            </div>
+
+            <hr>
+
+            <a href="/login" class="btn btn-outline-dark mt-2">Cerrar sesión</a>
         </form>
-
-        {% if resultado %}
-        <div class="alert alert-success mt-3">
-            Resultado del cálculo: <strong>{{ resultado }}</strong>
-        </div>
-        {% endif %}
-
-        <hr>
-
-        <!-- SELECCIÓN MULTIPLE -->
-        <h5>Opciones adicionales</h5>
-        <div class="mb-3">
-            <label class="form-label">Selecciona una categoría:</label>
-            <select class="form-select">
-                <option value="">Elige...</option>
-                <option>Ropa</option>
-                <option>Electrónica</option>
-                <option>Alimentación</option>
-            </select>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="envioGratis">
-            <label class="form-check-label" for="envioGratis">Envío gratuito</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="metodoPago" id="pagoTarjeta">
-            <label class="form-check-label" for="pagoTarjeta">Pago con tarjeta</label>
-        </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="radio" name="metodoPago" id="pagoPaypal">
-            <label class="form-check-label" for="pagoPaypal">Pago con PayPal</label>
-        </div>
-
-        <hr>
-
-        <!-- BOTONES ACCIÓN -->
-        <h5>Acciones rápidas</h5>
-        <button class="btn btn-outline-light me-2" onclick="mostrarMensaje('Guardado correctamente')">Guardar</button>
-        <button class="btn btn-outline-light me-2" onclick="mostrarMensaje('Descarga iniciada')">Descargar</button>
-        <button class="btn btn-outline-danger me-2" onclick="mostrarMensaje('Se ha eliminado el ítem')">Eliminar</button>
-        <button class="btn btn-outline-warning" onclick="incrementar()">Click para sumar</button>
-
-        <div class="contador mt-3" id="contador">Clicks: 0</div>
-
-        <hr>
-
-        <!-- TABLA EDITABLE -->
-        <h5>Productos</h5>
-        <table class="table table-dark table-bordered">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" class="form-control" value="Camiseta"></td>
-                    <td><input type="number" class="form-control" value="2"></td>
-                    <td><input type="number" class="form-control" value="19.99"></td>
-                </tr>
-                <tr>
-                    <td><input type="text" class="form-control" value="Auriculares"></td>
-                    <td><input type="number" class="form-control" value="1"></td>
-                    <td><input type="number" class="form-control" value="49.99"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <hr>
-
-        <a href="/login" class="btn btn-outline-light">Cerrar sesión</a>
     </div>
 
     <script>
@@ -124,6 +123,22 @@
             alerta.innerText = msg;
             alerta.classList.remove("d-none");
             setTimeout(() => alerta.classList.add("d-none"), 3000);
+        }
+
+        function añadirFila() {
+            const tabla = document.getElementById("tablaProductos").getElementsByTagName("tbody")[0];
+            const nuevaFila = tabla.insertRow();
+            nuevaFila.innerHTML = `
+                <td><input name="producto[]" type="text" class="form-control" required></td>
+                <td><input name="cantidad[]" type="number" class="form-control" required></td>
+                <td><input name="precio_producto[]" type="number" class="form-control" step="0.01" required></td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
+            `;
+        }
+
+        function eliminarFila(boton) {
+            const fila = boton.closest("tr");
+            fila.remove();
         }
     </script>
 </body>

@@ -82,25 +82,23 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for p in productos %}
                     <tr>
-                        <td><input name="producto[]" type="text" class="form-control" value="Camiseta" required></td>
-                        <td><input name="cantidad[]" type="number" class="form-control" value="2" required></td>
-                        <td><input name="precio_producto[]" type="number" class="form-control" value="19.99" step="0.01" required></td>
+                        <td><input name="producto[]" type="text" class="form-control" value="{{ p.nombre }}" required></td>
+                        <td><input name="cantidad[]" type="number" class="form-control" value="{{ p.cantidad }}" required></td>
+                        <td><input name="precio_producto[]" type="number" class="form-control" value="{{ p.precio }}" step="0.01" required></td>
                         <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
                     </tr>
-                    <tr>
-                        <td><input name="producto[]" type="text" class="form-control" value="Auriculares" required></td>
-                        <td><input name="cantidad[]" type="number" class="form-control" value="1" required></td>
-                        <td><input name="precio_producto[]" type="number" class="form-control" value="49.99" step="0.01" required></td>
-                        <td><button type="button" class="btn btn-sm btn-danger" onclick="eliminarFila(this)">Eliminar</button></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
             <button type="button" class="btn btn-sm btn-success" onclick="añadirFila()">➕ Añadir producto</button>
 
             <hr>
 
-            <button type="submit" class="btn btn-primary mt-3">Enviar formulario completo</button>
+            <button type="submit" formaction="{{ url_for('guardar_productos') }}" 
+        class="btn btn-primary mt-3">Guardar productos</button>
+
         </form>
 
         <hr>
