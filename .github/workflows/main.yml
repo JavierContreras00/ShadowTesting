@@ -24,11 +24,11 @@ jobs:
         pip install flask
         pip install flask requests
 
-    - name: Iniciar servidor Flask en segundo plano
+    - name: Iniciar Servidor PROD
       run: |
         nohup python prod_app/app.py &
 
-    - name: Esperar a que el servidor esté activo
+    - name: Esperar a que el servidor PROD esté activo
       run: |
         for i in {1..10}; do
           if curl --silent --fail http://127.0.0.1:5000; then
@@ -49,14 +49,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y k6
 
-    - name: Ejecutar script de carga con k6
+    - name: Ejecutar K6 PROD
       run: k6 run LoginProd.js
 
-    - name: Iniciar servidor Flask en segundo plano
+    - name: Iniciar servidor SHADOW
       run: |
         nohup python sombra_app/app.py &
 
-    - name: Esperar a que el servidor esté activo
+    - name: Esperar a que el servidor  SHADOW esté activo
       run: |
         for i in {1..10}; do
           if curl --silent --fail http://127.0.0.1:5001; then
@@ -68,6 +68,6 @@ jobs:
           fi
         done
 
-    - name: Ejecutar script de carga con k6
+    - name: Ejecutar K6 SHADOW
       run: k6 run LoginShadow.js
 
