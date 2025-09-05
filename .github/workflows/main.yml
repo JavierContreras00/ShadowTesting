@@ -63,8 +63,13 @@ jobs:
         done
 
     - name: Ejecutar K6 SHADOW
-      run: ./k6 run --out dashboard=reportShadow.html LoginShadow.js
-  
+      run: |
+        set -e
+        ls -la
+        ./k6 run --out dashboard=reportShadow.html LoginShadow.js
+        echo "Verificando si se generó el reporte..."
+        ls -la reportShadow.html
+      
     - name: Upload HTML report
       uses: actions/upload-artifact@v4
       with:
