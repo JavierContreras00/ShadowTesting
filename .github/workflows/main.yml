@@ -24,15 +24,6 @@ jobs:
         pip install flask
         pip install flask requests
 
-    - name: Instalar k6
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
-        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install -y k6
-
     - name: Install dependencies
       run: |
         sudo apt update
@@ -85,9 +76,6 @@ jobs:
 
     - name: Ejecutar K6 PROD
       run: ./k6 run --out web-dashboard=dashboard_output LoginProd.js
-
-    - name: Ejecutar K6 SHADOW
-      run: k6 run LoginShadow.js
 
     - name: Upload HTML dashboard
       uses: actions/upload-artifact@v4
