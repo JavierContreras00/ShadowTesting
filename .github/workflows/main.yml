@@ -43,6 +43,10 @@ jobs:
     - name: Instalar k6
       run: |
         sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
         sudo apt-get install -y k6
 
     - name: Ejecutar script de carga con k6
