@@ -28,7 +28,8 @@ jobs:
       run: |
         export PATH=$PATH:$(go env GOPATH)/bin
         go install go.k6.io/xk6/cmd/xk6@latest
-        $(go env GOPATH)/bin/xk6 build --with github.com/grafana/xk6-dashboard@latest
+        $(go env GOPATH)/bin/xk6 build --with github.com/grafana/xk6-dashboard@latest --output /usr/local/bin/k6
+        chmod +x /usr/local/bin/k6
 
     - name: Iniciar Servidor PROD
       run: |
@@ -65,8 +66,7 @@ jobs:
     - name: Ejecutar K6 SHADOW
       run: |
         set -e
-        ls -la
-        ./k6 run --out dashboard=reportShadow.html LoginShadow.js
+        k6 run --out dashboard=reportShadow.html LoginShadow.js
         echo "Verificando si se generó el reporte..."
         ls -la reportShadow.html
       
