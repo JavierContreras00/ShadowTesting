@@ -24,6 +24,15 @@ jobs:
         pip install flask
         pip install flask requests
 
+    - name: Instalar k6
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install -y k6
+
     - name: Iniciar Servidor PROD
       run: |
         nohup python prod_app/app.py &
@@ -40,30 +49,6 @@ jobs:
           fi
         done
 
-    - name: Instalar k6
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
-        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install -y k6
-
-    - name: Ejecutar K6 PROD
-      run: k6 run --out json=output.json LoginProd.js
-
-    - name: Install k6-reporter
-      run: npm install -g k6-reporter
-
-    - name: Generar HTML report de PROD
-      run: k6-reporter output.json -o reportProd.html
-
-    - name: Subir HTML report como artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: k6-html-report-Prod
-        path: reportProd.html
-
     - name: Iniciar servidor SHADOW
       run: |
         nohup python sombra_app/appShadow.py &
@@ -79,6 +64,9 @@ jobs:
             sleep 3
           fi
         done
+
+    - name: Ejecutar K6 PROD
+      run: k6 run LoginProd.js
 
     - name: Ejecutar K6 SHADOW
       run: k6 run LoginShadow.js
