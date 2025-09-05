@@ -76,11 +76,17 @@ jobs:
       run: ./k6 version
 
     - name: Ejecutar K6 PROD
-      run: ./k6 run --out web-dashboard=dashboard_output LoginProd.js
+      run: ./k6 run --out json=results.json LoginProd.js
 
-    - name: Upload HTML dashboard
+    - name: Generar reporte HTML desde JSON
+      uses: stefanprodan/report-generator-action@v1
+      with:
+        input: results.json
+        output: report.html
+
+    - name: Subir reporte HTML
       uses: actions/upload-artifact@v4
       with:
-        name: k6-dashboard-html
-        path: dashboard_output
+        name: k6-html-report
+        path: report.html
 
