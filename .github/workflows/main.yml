@@ -26,11 +26,21 @@ jobs:
 
     - name: Instalar xk6 y compilar k6 con dashboard
       run: |
+        sudo apt-get update
+        sudo apt-get install -y git make
+        sudo apt-get install -y golang
+    
         export PATH=$PATH:$(go env GOPATH)/bin
         go install go.k6.io/xk6/cmd/xk6@latest
-        $(go env GOPATH)/bin/xk6 build --with github.com/grafana/xk6-dashboard@latest --output k6
-        chmod +x k6
-        sudo mv k6 /usr/local/bin/k6
+    
+        # Compilar k6 con la extensión dashboard y guardar como 'k6-dashboard'
+        $(go env GOPATH)/bin/xk6 build \
+          --with github.com/grafana/xk6-dashboard@latest \
+          --output k6-dashboard
+    
+        chmod +x k6-dashboard
+        sudo mv k6-dashboard /usr/local/bin/k6
+
 
     - name: Verificar soporte dashboard en k6
       run: k6 --help | grep dashboard
@@ -69,7 +79,6 @@ jobs:
 
     - name: Ejecutar K6 SHADOW
       run: |
-        set -e
         k6 run --out dashboard=reportShadow.html LoginShadow.js
         echo "Verificando si se generó el reporte..."
         ls -la reportShadow.html
