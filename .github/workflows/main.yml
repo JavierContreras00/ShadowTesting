@@ -84,7 +84,7 @@ jobs:
         done
 
     - name: Ejecutar K6 PROD
-      run: k6 run --out dashboard=dashboard_output LoginProd.js
+      run: ./k6 run --out dashboard=dashboard_output LoginProd.js
 
     - name: Ejecutar K6 SHADOW
       run: k6 run LoginShadow.js
