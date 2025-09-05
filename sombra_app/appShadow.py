@@ -40,6 +40,8 @@ def login():
         usuario = request.form.get("usuario", "").strip()
         clave = request.form.get("clave", "").strip()
 
+        time.sleep(5)  # espera de 5s para simular latencia en Sombra
+
         try:
             with open(ruta_fichero, "r", encoding="utf-8") as f:
                 for linea in f:
