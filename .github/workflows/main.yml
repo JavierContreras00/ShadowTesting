@@ -1,0 +1,38 @@
+name: Ejecutar LoginProd.js
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  run_prod_app_and_login:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar repositorio
+      uses: actions/checkout@v3
+
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar dependencias de Python
+      run: |
+        python -m pip install --upgrade pip
+        # Agrega aquí otras dependencias si las necesitas
+        # pip install -r requirements.txt
+
+    - name: Ejecutar app.py (prod_app)
+      run: |
+        python prod_app/app.py
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Ejecutar LoginProd.js
+      run: |
+        node LoginProd.js
