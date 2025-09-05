@@ -66,9 +66,15 @@ jobs:
         done
 
     - name: Ejecutar K6 PROD
-      run: k6 run LoginProd.js
+      run: k6 run --out json=reportProd.json LoginProd.js
 
     - name: Ejecutar K6 SHADOW
-      run: k6 run LoginShadow.js
+      run: k6 run --out json=reportShadow.json LoginShadow.js
+
+    - name: Upload k6 report
+      uses: actions/upload-artifact@v3
+      with:
+        name: k6-report-Prod
+        path: reportProd.json
 
 
