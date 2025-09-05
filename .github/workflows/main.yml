@@ -52,3 +52,22 @@ jobs:
     - name: Ejecutar script de carga con k6
       run: k6 run LoginProd.js
 
+    - name: Iniciar servidor Flask en segundo plano
+      run: |
+        nohup python shadow_app/app.py &
+
+    - name: Esperar a que el servidor esté activo
+      run: |
+        for i in {1..10}; do
+          if curl --silent --fail http://127.0.0.1:5001; then
+            echo "Servidor activo!"
+            break
+          else
+            echo "Esperando al servidor..."
+            sleep 3
+          fi
+        done
+
+    - name: Ejecutar script de carga con k6
+      run: k6 run LoginShadow.js
+
