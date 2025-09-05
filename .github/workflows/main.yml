@@ -24,23 +24,25 @@ jobs:
         pip install flask
         pip install flask requests
 
-    - name: Instalar xk6 y compilar k6 con dashboard
+    - name: Instalar Go y compilar k6 con dashboard
       run: |
         sudo apt-get update
-        sudo apt-get install -y git make
         sudo apt-get install -y golang
     
+        # Asegúrate de que el binario anterior NO interfiera
+        sudo rm -f /usr/local/bin/k6 || true
+    
+        # Instalar xk6
         export PATH=$PATH:$(go env GOPATH)/bin
         go install go.k6.io/xk6/cmd/xk6@latest
     
-        # Compilar k6 con la extensión dashboard y guardar como 'k6-dashboard'
+        # Compilar k6 con soporte para dashboard
         $(go env GOPATH)/bin/xk6 build \
           --with github.com/grafana/xk6-dashboard@latest \
-          --output k6-dashboard
+          --output k6
     
-        chmod +x k6-dashboard
-        sudo mv k6-dashboard /usr/local/bin/k6
-
+        chmod +x k6
+        sudo mv k6 /usr/local/bin/k6
 
     - name: Verificar soporte dashboard en k6
       run: k6 --help | grep dashboard
