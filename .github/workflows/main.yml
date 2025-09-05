@@ -80,7 +80,7 @@ jobs:
 
     - name: Ejecutar K6 SHADOW
       run: |
-        k6 run --out 'dashboard=reportShadow.html&port=-1' LoginShadow.js
+        /usr/local/bin/k6 run --out 'dashboard=reportShadow.html&port=-1' LoginShadow.js
         ls -lh reportShadow.html
       
     - name: Upload HTML report
