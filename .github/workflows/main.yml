@@ -72,6 +72,9 @@ jobs:
           fi
         done
 
+    - name: Verificar versión de ./k6
+      run: ./k6 version
+
     - name: Ejecutar K6 PROD
       run: ./k6 run --out web-dashboard=dashboard_output LoginProd.js
 
