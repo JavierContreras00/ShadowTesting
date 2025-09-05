@@ -24,14 +24,12 @@ jobs:
         pip install flask
         pip install flask requests
 
-    - name: Instalar k6
+    - name: Download k6 with xk6-dashboard
       run: |
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
-        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install -y k6
+        curl -L https://github.com/szkiba/xk6-dashboard/releases/download/v0.7.0/k6-v0.47.0-dashboard-linux-amd64.tar.gz -o k6.tar.gz
+        tar -xzf k6.tar.gz
+        chmod +x k6
+        mv k6 /usr/local/bin/k6
 
     - name: Iniciar Servidor PROD
       run: |
@@ -69,25 +67,15 @@ jobs:
       run: k6 run --out json=reportProd.json LoginProd.js
 
     - name: Ejecutar K6 SHADOW
-      run: k6 run --out json=reportShadow.json LoginShadow.js
+      run: k6 run --out dashboard=reportShadow.html LoginShadow.js
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+      
+    - name: Upload HTML report
+      uses: actions/upload-artifact@v3
       with:
-        node-version: 18
+        name: k6-html-report
+        path: reportShadow.html
 
-    - name: Install k6-reporter
-      run: |
-        npm install -g k6-reporter
 
-    - name: Generate HTML report
-      run: |
-        k6-reporter reportProd.json > reportProd.html
-
-    - name: Upload k6 report
-      uses: actions/upload-artifact@v4
-      with:
-        name: k6-Report-Prod
-        path: reportProd.html
 
 
