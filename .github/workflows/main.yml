@@ -54,7 +54,7 @@ jobs:
 
     - name: Iniciar servidor SHADOW
       run: |
-        nohup python sombra_app/app.py &
+        nohup python sombra_app/appShadow.py &
 
     - name: Esperar a que el servidor  SHADOW esté activo
       run: |
