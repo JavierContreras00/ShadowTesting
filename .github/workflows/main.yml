@@ -21,8 +21,7 @@ jobs:
     - name: Instalar dependencias de Python
       run: |
         python -m pip install --upgrade pip
-        # Agrega aquí otras dependencias si las necesitas
-        # pip install -r requirements.txt
+        pip install flask
 
     - name: Ejecutar app.py (prod_app)
       run: |
