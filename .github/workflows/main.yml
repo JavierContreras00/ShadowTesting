@@ -24,27 +24,14 @@ jobs:
         pip install flask
         pip install flask requests
 
-    - name: Instalar Go y compilar k6 con dashboard correctamente
+    - name: Instalar k6
       run: |
         sudo apt-get update
-        sudo apt-get install -y golang
-    
-        sudo rm -f /usr/local/bin/k6 || true
-    
-        export PATH=$PATH:$(go env GOPATH)/bin
-        go install go.k6.io/xk6/cmd/xk6@latest
-    
-        $(go env GOPATH)/bin/xk6 build \
-          --with github.com/grafana/xk6-dashboard@v0.7.6 \
-          --output k6
-    
-        chmod +x k6
-        sudo mv k6 /usr/local/bin/k6
-
-
-    - name: Verificar soporte dashboard en k6 compilado
-      run: |
-        k6 --help | grep dashboard || (echo "❌ No incluyó dashboard. Abortando." && exit 1)
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install -y k6
 
     - name: Iniciar Servidor PROD
       run: |
@@ -78,16 +65,17 @@ jobs:
           fi
         done
 
+    - name: Ejecutar K6 PROD
+      run: k6 run --out json=reportProd.json LoginProd.js
+
     - name: Ejecutar K6 SHADOW
-      run: |
-        /usr/local/bin/k6 run --out 'dashboard=reportShadow.html&port=-1' LoginShadow.js
-        ls -lh reportShadow.html
+      run: k6 run --out json=reportShadow.json LoginShadow.js
       
-    - name: Upload HTML report
+    - name: Upload k6 report
       uses: actions/upload-artifact@v4
       with:
-        name: k6-html-report
-        path: reportShadow.html
+        name: k6-Report-Prod
+        path: reportProd.json
 
 
 
