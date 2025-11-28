@@ -65,23 +65,19 @@ jobs:
           fi
         done
 
-    - name: Ejecutar K6 PROD
-      run: k6 run --out json=reportProd.json LoginProd.js
+    - name: Ejecutar K6 PROD y enviar datos a Grafana Cloud
+      env:
+        K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      run: |
+        echo "Ejecutando test PROD en Grafana Cloud..."
+        k6 run --out cloud LoginProd.js
 
-    - name: Ejecutar K6 SHADOW
-      run: k6 run --out json=reportShadow.json LoginShadow.js
-      
-    - name: Upload k6 PROD report
-      uses: actions/upload-artifact@v4
-      with:
-        name: k6-Report-Prod
-        path: reportProd.json
-
-    - name: Upload k6 SHADOW report
-      uses: actions/upload-artifact@v4
-      with:
-        name: k6-Report-Shadow
-        path: reportShadow.json
+    - name: Ejecutar K6 SHADOW y enviar datos a Grafana Cloud
+      env:
+        K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      run: |
+        echo "Ejecutando test SHADOW en Grafana Cloud..."
+        k6 run --out cloud LoginShadow.js
 
 
 
