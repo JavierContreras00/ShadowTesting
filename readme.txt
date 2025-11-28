@@ -1,4 +1,4 @@
-🧪 Shadow Testing Demo – Flask
+🧪 Shadow Testing Demo – Flask 
 Este proyecto es una demostración de Shadow Testing, con dos versiones del mismo sistema web:
 
 Producción: Estilo claro (versión principal)
