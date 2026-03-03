@@ -1,64 +1,77 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import sys
 import os
 from pathlib import Path
- 
-# Añadir la carpeta raíz al path para poder importar utils
-sys.path.append(str(Path(__file__).resolve().parents[1]))
- 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from utils import calcular_descuento, log_accion
- 
+
 app = Flask(__name__)
-app.secret_key = "clave_super_secreta"
- 
+
+# ✅ Mejor que hardcodear: permite demo con env var, pero mantiene fallback
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev_insecure_key_change_me")
+
+BASE_DIR = Path(__file__).resolve().parents[0]  # ajusta si tu app.py está en otra carpeta
+USUARIOS_TXT = BASE_DIR / "usuarios.txt"
+PRODUCTOS_TXT = BASE_DIR / "productos.txt"
+
+
+# ---------- USERS ----------
+def iter_users():
+    """Yield (user, stored_password) from usuarios.txt. Ignores malformed lines."""
+    if not USUARIOS_TXT.exists():
+        return
+    with USUARIOS_TXT.open("r", encoding="utf-8") as f:
+        for linea in f:
+            partes = linea.strip().split(":", 1)
+            if len(partes) != 2:
+                continue
+            yield partes[0].strip(), partes[1].strip()
+
+
+def user_exists(username: str) -> bool:
+    return any(u == username for u, _ in iter_users())
+
+
+def verify_password(stored: str, candidate: str) -> bool:
+    """
+    Backward compatible:
+    - If stored looks like a werkzeug hash => check_password_hash
+    - else => legacy plain compare (so existing users still can login)
+    """
+    if stored.startswith("pbkdf2:") or stored.startswith("scrypt:"):
+        return check_password_hash(stored, candidate)
+    return stored == candidate
+
+
 # ============ LOGIN ============
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
-@app.route("/", methods=["GET", "POST"])
-@app.route("/login", methods=["GET", "POST"])
 def login():
-    print("===> Entrando en la ruta /login")  # LOG INICIAL
-
-    ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "usuarios.txt")
-    print(f"Ruta absoluta esperada del fichero: {ruta_fichero}")  # LOG
-
-    if os.path.exists(ruta_fichero):
-        print("✅ Fichero usuarios.txt encontrado.")  # LOG
-    else:
-        print("❌ Fichero usuarios.txt NO encontrado.")  # LOG
-
     if request.method == "POST":
         usuario = request.form.get("usuario", "").strip()
         clave = request.form.get("clave", "").strip()
-        print(f"🔐 Intento de login con -> usuario: {usuario}, clave: {clave}")  # LOG
 
-        try:
-            with open(ruta_fichero, "r", encoding="utf-8") as f:
-                print("📖 Leyendo usuarios del fichero:")  # LOG
-                for linea in f:
-                    partes = linea.strip().split(":", 1)
-                    if len(partes) != 2:
-                        print(f"⚠️ Línea malformada ignorada: {repr(linea)}")  # LOG
-                        continue
-                    u, c = partes
-                    print(f"  → Usuario registrado: {u}, Clave: {c}")  # LOG
-                    if usuario == u and clave == c:
-                        print("✅ Login correcto")  # LOG
-                        session["usuario"] = usuario
-                        return redirect(url_for("version_prod"))
-        except Exception as e:
-            print(f"⚠️ Error al abrir o leer el fichero: {e}")  # LOG
+        # ✅ No loguear contraseñas
+        print(f"🔐 Intento de login usuario={usuario!r}")
 
-        print("❌ Login fallido. Credenciales incorrectas.")  # LOG
+        for u, stored in iter_users():
+            if usuario == u and verify_password(stored, clave):
+                session["usuario"] = usuario
+                return redirect(url_for("version_prod"))
+
         return render_template("login.html", error="Credenciales incorrectas")
 
     return render_template("login.html")
 
- 
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
 @app.route("/registro", methods=["GET", "POST"])
 def registro():
-    ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "usuarios.txt")
-
     if request.method == "POST":
         nuevo_usuario = request.form.get("usuario", "").strip()
         nueva_clave = request.form.get("clave", "").strip()
@@ -66,34 +79,23 @@ def registro():
         if not nuevo_usuario or not nueva_clave:
             return render_template("registro.html", error="Usuario y contraseña no pueden estar vacíos")
 
-        # Validar si ya existe el usuario
-        if os.path.exists(ruta_fichero):
-            try:
-                with open(ruta_fichero, "r", encoding="utf-8") as f:
-                    for linea in f:
-                        partes = linea.strip().split(":", 1)
-                        if len(partes) != 2:
-                            continue  # Ignora líneas corruptas
-                        u, _ = partes
-                        if nuevo_usuario == u:
-                            return render_template("registro.html", error="Ese usuario ya existe")
-            except Exception as e:
-                return render_template("registro.html", error=f"Error al leer usuarios: {e}")
+        if user_exists(nuevo_usuario):
+            return render_template("registro.html", error="Ese usuario ya existe")
 
-        # Añadir el nuevo usuario (asegurando salto de línea antes si hace falta)
+        password_hash = generate_password_hash(nueva_clave)
+
         try:
-            necesita_salto = True
-            if os.path.exists(ruta_fichero):
-                with open(ruta_fichero, "rb") as f:
+            # Asegura salto de línea si el fichero no termina en \n
+            needs_newline = False
+            if USUARIOS_TXT.exists() and USUARIOS_TXT.stat().st_size > 0:
+                with USUARIOS_TXT.open("rb") as f:
                     f.seek(-1, os.SEEK_END)
-                    last_char = f.read(1)
-                    if last_char == b"\n":
-                        necesita_salto = False
+                    needs_newline = (f.read(1) != b"\n")
 
-            with open(ruta_fichero, "a", encoding="utf-8") as f:
-                if necesita_salto:
+            with USUARIOS_TXT.open("a", encoding="utf-8") as f:
+                if needs_newline:
                     f.write("\n")
-                f.write(f"{nuevo_usuario}:{nueva_clave}\n")
+                f.write(f"{nuevo_usuario}:{password_hash}\n")
 
             return render_template("registro.html", mensaje="✅ Registro exitoso. Ya puedes iniciar sesión.")
         except Exception as e:
@@ -102,21 +104,25 @@ def registro():
     return render_template("registro.html")
 
 
-# ------- UTILIDAD: leer productos desde TXT (mismo separador que el guardado) -------
+# ---------- PRODUCTS ----------
 def leer_productos():
     productos = []
-    ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
-    if os.path.exists(ruta_fichero):
-        with open(ruta_fichero, "r", encoding="utf-8") as f:
+    if PRODUCTOS_TXT.exists():
+        with PRODUCTOS_TXT.open("r", encoding="utf-8") as f:
             for linea in f:
-                partes = linea.strip().split(":")  # <- usamos ":" para ser coherentes con /incluir_productos
-                if len(partes) == 3:
-                    nombre, cantidad, precio = partes
+                partes = linea.strip().split(":")
+                if len(partes) != 3:
+                    continue
+                nombre, cantidad, precio = partes
+                try:
                     productos.append({
-                        "nombre": nombre,
-                        "cantidad": cantidad,
-                        "precio": precio
+                        "nombre": nombre.strip(),
+                        "cantidad": int(cantidad),
+                        "precio": float(precio),
                     })
+                except ValueError:
+                    # ignora filas corruptas
+                    continue
     return productos
 
 
@@ -125,28 +131,28 @@ def leer_productos():
 def version_prod():
     if "usuario" not in session:
         return redirect(url_for("login"))
- 
+
     resultado = None
     if request.method == "POST":
         try:
             precio = float(request.form["precio"])
             resultado = calcular_descuento(precio)
             log_accion(session["usuario"], "producción", "calculó descuento")
-        except:
+        except Exception:
             resultado = "Error al calcular el descuento."
- 
-    # Cargar productos en cada petición
+
     productos = leer_productos()
 
-    return render_template("version.html",
-                           usuario=session["usuario"],
-                           version="Producción",
-                           color="success",
-                           resultado=resultado,
-                           productos=productos)  # <- se inyecta a la plantilla
- 
+    return render_template(
+        "version.html",
+        usuario=session["usuario"],
+        version="Producción",
+        color="success",
+        resultado=resultado,
+        productos=productos,
+    )
 
-# (Opcional) Ruta de ejemplo que ya tenías para otra plantilla
+
 @app.route("/produccion", methods=["GET", "POST"])
 def produccion():
     productos = leer_productos()
@@ -158,17 +164,19 @@ def guardar_productos():
     if "usuario" not in session:
         return redirect(url_for("login"))
 
+    productos = request.form.getlist("producto[]")
+    cantidades = request.form.getlist("cantidad[]")
+    precios = request.form.getlist("precio_producto[]")
+
     try:
-        productos = request.form.getlist("producto[]")
-        cantidades = request.form.getlist("cantidad[]")
-        precios = request.form.getlist("precio_producto[]")
-
-        ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
-
-        # 👇 Sobrescribe el fichero con las filas actuales
-        with open(ruta_fichero, "w", encoding="utf-8") as f:
+        with PRODUCTOS_TXT.open("w", encoding="utf-8") as f:
             for p, c, pr in zip(productos, cantidades, precios):
-                f.write(f"{p}:{c}:{pr}\n")
+                p = (p or "").strip()
+                if not p:
+                    continue
+                c_int = int(c)
+                pr_f = float(pr)
+                f.write(f"{p}:{c_int}:{pr_f}\n")
 
         log_accion(session["usuario"], "producción", "actualizó productos")
         return redirect(url_for("version_prod"))
@@ -181,16 +189,19 @@ def incluir_productos():
     if "usuario" not in session:
         return redirect(url_for("login"))
 
+    productos = request.form.getlist("producto[]")
+    cantidades = request.form.getlist("cantidad[]")
+    precios = request.form.getlist("precio_producto[]")
+
     try:
-        productos = request.form.getlist("producto[]")
-        cantidades = request.form.getlist("cantidad[]")
-        precios = request.form.getlist("precio_producto[]")  # <- nombre correcto del input en la plantilla
-
-        ruta_fichero = os.path.join(Path(__file__).resolve().parents[1], "productos.txt")
-
-        with open(ruta_fichero, "a", encoding="utf-8") as f:
+        with PRODUCTOS_TXT.open("a", encoding="utf-8") as f:
             for p, c, pr in zip(productos, cantidades, precios):
-                f.write(f"{p}:{c}:{pr}\n")
+                p = (p or "").strip()
+                if not p:
+                    continue
+                c_int = int(c)
+                pr_f = float(pr)
+                f.write(f"{p}:{c_int}:{pr_f}\n")
 
         log_accion(session["usuario"], "producción", "añadió productos")
         return redirect(url_for("version_prod"))

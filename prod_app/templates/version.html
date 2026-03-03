@@ -11,7 +11,7 @@
 </head>
 <body class="bg-light">
     <div class="container bg-white p-4 rounded shadow">
-        <h2 class="mb-3">Versión: Producción</h2>
+        <h2 class="mb-3">Versión: {{ version }}</h2>
         <p>Bienvenido, <strong>{{ usuario }}</strong></p>
 
         <!-- ALERTA -->
@@ -92,21 +92,25 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <button type="button" class="btn btn-sm btn-success" onclick="añadirFila()">➕ Añadir producto</button>
+            <button type="button" class="btn btn-sm btn-success" onclick="anadirFila()">➕ Añadir producto</button>
 
             <hr>
 
-            <button type="submit" formaction="{{ url_for('guardar_productos') }}" 
-        class="btn btn-primary mt-3">Guardar productos</button>
+            <button type="submit"
+                    formaction="{{ url_for('guardar_productos') }}"
+                    class="btn btn-primary mt-3">
+                Guardar productos
+            </button>
 
         </form>
 
         <hr>
-        <a href="/login" class="btn btn-outline-dark">Cerrar sesión</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-dark">Cerrar sesión</a>
     </div>
 
     <script>
         let contador = 0;
+
         function incrementar() {
             contador++;
             document.getElementById("contador").innerText = "Clicks: " + contador;
@@ -119,7 +123,7 @@
             setTimeout(() => alerta.classList.add("d-none"), 3000);
         }
 
-        function añadirFila() {
+        function anadirFila() {
             const tabla = document.getElementById("tablaProductos").getElementsByTagName("tbody")[0];
             const nuevaFila = tabla.insertRow();
             nuevaFila.innerHTML = `
