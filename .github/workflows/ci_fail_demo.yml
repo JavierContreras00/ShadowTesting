@@ -1,0 +1,9 @@
+name: CI Fail Demo
+on:
+  pull_request:
+jobs:
+  fail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail intentionally
+        run: exit 1
